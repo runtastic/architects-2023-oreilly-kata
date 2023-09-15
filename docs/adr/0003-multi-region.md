@@ -13,17 +13,13 @@ The product should ensure certain response time, as well as should be able work 
 
 ## Decision
 
-The infrastructure setup must allow placement of services in databases in multiple regions. When designing infrastructure, multi-region should be talken into consideration for all services. 
+Most cloud providers group their data centers into geographic regions (e.g. frankfurt). Regions then typically consist of three or more availability zones (AZ), being distinct data centers but co-located in this region. Typically direct connectivity between AZs within a single region is given and resources can be easily managed within a region without great architectural effort. Distributing resources across multiple regions is way more complex, introducing, among other restrictions, higher cost, high(er) latency, no direct connectivity, etc. 
 
-Multi-region must be included not only within the system. It is possible that certain countries will have their own, fully detached infrastructure from other regions, deployed on different infrastructure providers available in this region.
-
-Decision to localize certain services will be done case by case basis.
+Multi region also introduces the need for a more complex architecture. The increased cost and maintenance effort would be too much for a new startup. 
 
 ## Consequences
 
-Some of microservices will have their data compartmentalized due to compliance and performance reasons. 
-
-The system should have a few distributed entry points with geographically routed traffic.
+Do not deploy services in multiple regions. To match the expected resonse times, employ caching and CDN, if needed. 
 
 ## Links
 
