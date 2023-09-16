@@ -124,6 +124,8 @@ worksheet. Based on the top characteristics AC01, AC02 and AC05 it was decided a
 in [ADR-0001 Event Driven Microservice Architecture](docs/adr/0001-event-driven-microservice-architecture.md)
 that a event driven microservice based approach is taken.
 
+![](assets/architecture.png)
+
 ## Client Architecture
 
 In order to satisfy usability needs (AC08) and provide the richest possible user interface (NFR04), clients should
@@ -135,8 +137,6 @@ used ([ADR-0005 Backend for Frontend](docs/adr/0005-backend-for-frontend.md)).
 
 Mobile clients should utilize a local database in order to avoid possible data loss and improve responsiveness
 in low reception areas.
-
-![](assets/architecture.png)
 
 # Business Domain
 
