@@ -119,7 +119,7 @@ were identified.
 ## Architectural Style
 
 The identified architectural characteristics were matched against
-the [Architecture Style]https://developertoarchitect.com/resources.html
+the [Architecture Style](https://developertoarchitect.com/resources.html)
 worksheet. Based on the top characteristics AC01, AC02 and AC05 it was decided and documented
 in [ADR-0001 Event Driven Microservice Architecture](docs/adr/0001-event-driven-microservice-architecture.md)
 that a event driven microservice based approach is taken.
