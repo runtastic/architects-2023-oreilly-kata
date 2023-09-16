@@ -6,9 +6,11 @@
   * [Use Cases](#use-cases)
 * [Architectural Considerations](#architectural-considerations)
   * [Architectural Characteristics](#architectural-characteristics)
+  * [Architectural Style](#architectural-style)
+  * [Client Architecture](#client-architecture)
 * [Business Domain](#business-domain)
 * [Events](#events)
-* [System Design](#system-design)
+* [System Overview](#system-overview)
 * [Components](#components)
   * [Event Bus](#event-bus)
   * [Databases](#databases)
@@ -24,7 +26,6 @@
   * [Sharing](#sharing)
   * [Analytics](#analytics)
   * [Backend for Frontend](#backend-for-frontend)
-  * [Clients](#clients)
 * [Deployment Considerations](#deployment-considerations)
 * [ADRs](#adrs)
 <!-- TOC -->
@@ -84,32 +85,58 @@ From the given requirements, the following use cases have been derived
 | Id     | Requirement                                                                                                             |
 |--------|-------------------------------------------------------------------------------------------------------------------------|
 | USEC01 | User can register, login and manage their account                                                                       |
-|        | User can add and remove their email access credentials                                                                  |
-|        | User can view trips (=set of bookings)                                                                                  |
-|        | User can manually add / remove / update a booking                                                                       |
-|        | User can see contact details of a travel agency managing the trip                                                       |
-|        | User can create a sharing link of a trip for another user                                                               |
-|        | User can see a yearly report based on user data                                                                         |
-|        | User can filter out some emails                                                                                         |
-|        | System polls each user email every 5 minutes or less                                                                    |
-|        | System inserts bookings additions/updates from emails                                                                   |
-|        | System inserts bookings additions/updates from external travel agencies (SABRE, APOLLO, ..) and company existing system |
-|        | System provides analytics data based on user trips                                                                      |
+| USEC02 | User can add and remove their email access credentials                                                                  |
+| USEC03 | User can view trips (=set of bookings)                                                                                  |
+| USEC04 | User can manually add / remove / update a booking                                                                       |
+| USEC05 | User can see contact details of a travel agency managing the trip (help me)                                             |
+| USEC06 | User can create a sharing link of a trip for another user                                                               |
+| USEC07 | User receives a yearly report based on user data                                                                        |
+| USEC08 | User can filter out some emails                                                                                         |
+| USEC09 | System polls each user email every 5 minutes or less                                                                    |
+| USEC10 | System inserts bookings additions/updates from emails                                                                   |
+| USEC11 | System inserts bookings additions/updates from external travel agencies (SABRE, APOLLO, ..) and company existing system |
+| USEC12 | System provides analytics data based on user trips                                                                      |
 
 # Architectural Considerations
 
 ## Architectural Characteristics
 
-| Id   | Top3 | Characteristic  |  Source                                                                                   |
-|------|-----|-----------------|------------------------------------------------------------------------------------------|
-| AC01 | x   | availability    | NFR02 NFR05 SLA 99,99% uptime                                                            |
-| AC02 | x   | scalability     | NFR1 The systems must be able to handle a large amount of users and their mailboxes      |
-| AC03 |     | security        |                                                                                          |
-| AC04 |     | extensibility   | FR03, FR06 & FR09 It should be easy to add new travel systems and social media platforms |
-| AC05 | x   | responsiveness  | NFR03 & NFR06 Ensure low latency all over the globe for frontend clients                 |
-| AC06 |     | observability   |                                                                                          | |
-| AC07 |     | fault tolerance |                                                                                          | |
-| AC08 |     | usability       | NFR04 Use native apps for mobiles to guarantee best possible user experience             |
+Based on the requirements and with the help of
+the [Architectural Characteristics Worksheet](https://developertoarchitect.com/resources.html) following characteristics
+were identified.
+
+| Id   | Top3 | Characteristic  | Source                                                                                   |
+|------|------|-----------------|------------------------------------------------------------------------------------------|
+| AC01 | x    | availability    | NFR02 NFR05 SLA 99,99% uptime                                                            |
+| AC02 | x    | scalability     | NFR1 The systems must be able to handle a large amount of users and their mailboxes      |
+| AC03 |      | security        |                                                                                          |
+| AC04 |      | extensibility   | FR03, FR06 & FR09 It should be easy to add new travel systems and social media platforms |
+| AC05 | x    | responsiveness  | NFR03 & NFR06 Ensure low latency all over the globe for frontend clients                 |
+| AC06 |      | observability   |                                                                                          | |
+| AC07 |      | fault tolerance |                                                                                          | |
+| AC08 |      | usability       | NFR04 Use native apps for mobiles to guarantee best possible user experience             |
+
+## Architectural Style
+
+The identified architectural characteristics were matched against
+the [Architecture Style]https://developertoarchitect.com/resources.html
+worksheet. Based on the top characteristics AC01, AC02 and AC05 it was decided and documented
+in [ADR-0001 Event Driven Microservice Architecture](docs/adr/0001-event-driven-microservice-architecture.md)
+that a event driven microservice based approach is taken.
+
+## Client Architecture
+
+In order to satisfy usability needs (AC08) and provide the richest possible user interface (NFR04), clients should
+use a native implementation to its platform. This was documented
+in [ADR-0004 Native Clients](docs/adr/0004-native-clients.md).
+
+To optimize communication between clients and the backend, a backend for frontend approach is
+used ([ADR-0005 Backend for Frontend](docs/adr/0005-backend-for-frontend.md)).
+
+Mobile clients should utilize a local database in order to avoid possible data loss and improve responsiveness
+in low reception areas.
+
+![](assets/architecture.png)
 
 # Business Domain
 
@@ -153,7 +180,11 @@ to dive deeply into the domain.
 | UserUpdated           | User information was updated                                                               |
 | UserDeleted           | User was deleted                                                                           |
 
-# System Design
+# System Overview
+
+The following diagram gives an overview of the whole services structure and interaction between services, the message
+bus
+and external systems. Later on all components are described in more detail.
 
 ![](diagrams/system-overview.png)
 
@@ -176,7 +207,7 @@ messages is expected that have to processed in a short amount of time. Kafka pro
 
 ## Databases
 
-No special database type is required for information storage. Take into consideration what employees are 
+No special database type is required for information storage. Take into consideration what employees are
 already used to and have knowledge in.
 
 ## Authentication & Authorization
@@ -293,7 +324,11 @@ establish a data team early on that takes care of evolving this component.
 
 ![](diagrams/overview-bff.png)
 
-## Clients
+In order to provide a platform tailored api to all clients, the Backend for frontend pattern is used. This decision
+was documented in [ADR-0001 Backend for Frontend](docs/adr/0005-backend-for-frontend.md).
+
+For simplicity all platforms are initially served from one BFF. If apis need to diverge too much or platform teams want
+to take ownership of "their" apis, in the future the service might be separated by platform.
 
 # Deployment Considerations
 
@@ -345,5 +380,5 @@ The following diagram shows very simplified how the mentioned components play to
 - [ADR-0001 Event Driven Microservice Architecture](docs/adr/0001-event-driven-microservice-architecture.md)
 - [ADR-0002 Templated External Service Update Services](docs/adr/0002-templated-external-service-update-services.md)
 - [ADR-0003 Multi Region](docs/adr/0003-multi-region.md)
-- [ADR-0001 Native Clients](docs/adr/0004-native-clients.md)
-- [ADR-0001 Backend for Frontend](docs/adr/0005-backend-for-frontend.md)
+- [ADR-0004 Native Clients](docs/adr/0004-native-clients.md)
+- [ADR-0005 Backend for Frontend](docs/adr/0005-backend-for-frontend.md)
